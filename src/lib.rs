@@ -1,50 +1,28 @@
-use std::sync::Arc;
+use crate::models::{AppState, Status};
 use axum::extract::State;
-use axum::{Json, Router};
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
 use axum::routing::get;
-use serde_json::json;
-use sqlx::{PgPool, Row};
+use axum::{Json, Router};
 use sqlx::postgres::PgPoolOptions;
+use sqlx::Row;
+use std::sync::Arc;
 use tower_http::cors::CorsLayer;
-use crate::models::AppState;
+use crate::errors::{AppError, AppResult};
 
 mod models;
+mod errors;
 
-struct AppError {
-    code: StatusCode,
-    message: String
-}
-
-impl AppError {
-    pub fn status(code: StatusCode) -> AppError {
-        AppError {
-            code,
-            message: "".to_string(),
-        }
-    }
-}
-
-impl IntoResponse for AppError {
-    fn into_response(self) -> Response {
-        (self.code, self.message).into_response()
-    }
-}
-
-pub type AppResult<T> = Result<T, AppError>;
-
-async fn status(State(state): State<Arc<AppState>>) -> AppResult<impl IntoResponse> {
+async fn status(State(state): State<Arc<AppState>>) -> AppResult<Json<Status>> {
     let row = sqlx::query("SELECT 'hi' as text")
         .fetch_one(&state.db)
         .await
         .map_err(|_| AppError::status(StatusCode::NOT_FOUND))?;
 
-    let mut text: &str = row.try_get("text").unwrap();
+    let text: &str = row.try_get("text").unwrap();
 
-    Ok(Json(json!({
-        "status": text
-    })))
+    Ok(Json(Status {
+        status: text.to_string()
+    }))
 }
 
 pub async fn setup() {
