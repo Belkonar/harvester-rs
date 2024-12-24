@@ -1,6 +1,5 @@
 use crate::models::AppState;
 use crate::routes::collect_routes;
-use axum::Router;
 use sqlx::postgres::PgPoolOptions;
 use std::sync::Arc;
 
@@ -19,8 +18,7 @@ pub async fn setup() {
         db: pool
     });
 
-    let app = Router::new()
-        .merge(collect_routes())
+    let app = collect_routes()
         .with_state(shared_state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3030").await.unwrap();
