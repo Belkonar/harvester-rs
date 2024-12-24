@@ -4,7 +4,7 @@ use axum::response::{IntoResponse, Response};
 /// Global error type
 pub struct AppError {
     pub code: StatusCode,
-    pub message: String
+    pub message: String,
 }
 
 impl AppError {
@@ -16,10 +16,7 @@ impl AppError {
     }
 
     pub fn new(code: StatusCode, message: String) -> AppError {
-        AppError {
-            code,
-            message,
-        }
+        AppError { code, message }
     }
 }
 
@@ -31,4 +28,3 @@ impl IntoResponse for AppError {
 
 /// Use this for most functions that return a result
 pub type AppResult<T> = Result<T, AppError>;
-
