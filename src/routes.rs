@@ -2,7 +2,6 @@ use crate::models::AppState;
 use crate::routes::machine::machine_routes;
 use crate::routes::main::main_routes;
 use axum::Router;
-use std::sync::Arc;
 
 mod machine;
 mod main;

@@ -1,7 +1,6 @@
 use crate::models::AppState;
 use crate::routes::collect_routes;
 use sqlx::postgres::PgPoolOptions;
-use std::sync::Arc;
 
 mod errors;
 mod models;

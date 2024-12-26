@@ -5,7 +5,6 @@ use axum::http::StatusCode;
 use axum::routing::get;
 use axum::{Json, Router};
 use sqlx::Row;
-use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 
 pub async fn status(State(state): State<AppState>) -> AppResult<Json<Status>> {
