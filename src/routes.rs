@@ -7,6 +7,6 @@ use std::sync::Arc;
 mod machine;
 mod main;
 
-pub fn collect_routes() -> Router<Arc<AppState>> {
+pub fn collect_routes() -> Router<AppState> {
     Router::new().merge(main_routes()).merge(machine_routes())
 }

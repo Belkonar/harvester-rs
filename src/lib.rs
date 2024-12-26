@@ -14,7 +14,7 @@ pub async fn setup() {
         .await
         .unwrap();
 
-    let shared_state = Arc::new(AppState { db: pool });
+    let shared_state = AppState { db: pool };
 
     let app = collect_routes().with_state(shared_state);
 

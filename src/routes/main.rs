@@ -8,7 +8,7 @@ use sqlx::Row;
 use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 
-pub async fn status(State(state): State<Arc<AppState>>) -> AppResult<Json<Status>> {
+pub async fn status(State(state): State<AppState>) -> AppResult<Json<Status>> {
     let row = sqlx::query("SELECT 'hi' as text")
         .fetch_one(&state.db)
         .await
@@ -21,7 +21,7 @@ pub async fn status(State(state): State<Arc<AppState>>) -> AppResult<Json<Status
     }))
 }
 
-pub fn main_routes() -> Router<Arc<AppState>> {
+pub fn main_routes() -> Router<AppState> {
     Router::new()
         .route("/", get(status))
         .layer(CorsLayer::permissive())
