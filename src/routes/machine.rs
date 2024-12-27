@@ -5,6 +5,7 @@ use axum::http::StatusCode;
 use axum::routing::put;
 use axum::{Json, Router};
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 use sqlx::types::Uuid;
 
 #[derive(Deserialize)]
@@ -37,20 +38,33 @@ async fn put_source(
     }))
 }
 
-// TODO: lol make this accept a list
 async fn put_tables(
     State(state): State<AppState>,
-    Json(body): Json<PutTableRequest>,
-) -> AppResult<Json<PutTableRequest>> {
-    sqlx::query("CALL upsert_table($1, $2, $3)")
-        .bind(&body.name)
-        .bind(body.source)
-        .bind(body.nonce)
-        .execute(&state.db)
-        .await
-        .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    Json(body): Json<Vec<PutTableRequest>>,
+) -> AppResult<Json<Value>> {
+    let len = body.len();
 
-    Ok(Json(body))
+    if len > 50 {
+        return Err(AppError::new(
+            StatusCode::BAD_REQUEST,
+            format!(
+                "This endpoint is limited to 50 items per request, you have sent {}",
+                len
+            ),
+        ));
+    }
+
+    for table in &body {
+        sqlx::query("CALL upsert_table($1, $2, $3)")
+            .bind(&table.name)
+            .bind(table.source)
+            .bind(table.nonce)
+            .execute(&state.db)
+            .await
+            .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    }
+
+    Ok(Json(json!({})))
 }
 
 pub fn machine_routes() -> Router<AppState> {
