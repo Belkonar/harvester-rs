@@ -13,6 +13,6 @@ pub struct Status {
 
 #[derive(Serialize, Debug)]
 pub struct DataSource {
-    pub id: String,
+    pub id: sqlx::types::Uuid,
     pub name: String,
 }

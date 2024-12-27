@@ -7,6 +7,8 @@ pub struct AppError {
     pub message: String,
 }
 
+// This is to fix the warning
+#[allow(dead_code)]
 impl AppError {
     pub fn status(code: StatusCode) -> AppError {
         AppError {
