@@ -16,9 +16,9 @@ struct PutSourceRequest {
 
 #[derive(Deserialize, Serialize, Debug)]
 struct PutTableRequest {
-    name: String,
     source: Uuid,
     nonce: Uuid,
+    names: Vec<String>,
 }
 
 async fn put_source(
@@ -40,9 +40,9 @@ async fn put_source(
 
 async fn put_tables(
     State(state): State<AppState>,
-    Json(body): Json<Vec<PutTableRequest>>,
+    Json(body): Json<PutTableRequest>,
 ) -> AppResult<Json<Value>> {
-    let len = body.len();
+    let len = body.names.len();
 
     if len > 50 {
         return Err(AppError::new(
@@ -54,11 +54,11 @@ async fn put_tables(
         ));
     }
 
-    for table in &body {
+    for table in &body.names {
         sqlx::query("CALL upsert_table($1, $2, $3)")
-            .bind(&table.name)
-            .bind(table.source)
-            .bind(table.nonce)
+            .bind(table)
+            .bind(body.source)
+            .bind(body.nonce)
             .execute(&state.db)
             .await
             .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
