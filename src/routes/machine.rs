@@ -21,6 +21,21 @@ struct PutTableRequest {
     names: Vec<String>,
 }
 
+#[derive(Deserialize)]
+struct PutFieldRequest {
+    source: Uuid,
+    nonce: Uuid,
+    fields: Vec<PutFieldRequestField>,
+}
+
+#[derive(Deserialize)]
+struct PutFieldRequestField {
+    name: String,
+    table: String,
+    types: Vec<String>,
+    subfield: bool,
+}
+
 async fn put_source(
     State(state): State<AppState>,
     Json(body): Json<PutSourceRequest>,
@@ -67,8 +82,41 @@ async fn put_tables(
     Ok(Json(json!({})))
 }
 
+async fn put_fields(
+    State(state): State<AppState>,
+    Json(body): Json<PutFieldRequest>,
+) -> AppResult<Json<Value>> {
+    let len = body.fields.len();
+
+    if len > 500 {
+        return Err(AppError::new(
+            StatusCode::BAD_REQUEST,
+            format!(
+                "This endpoint is limited to 50 items per request, you have sent {}",
+                len
+            ),
+        ));
+    }
+
+    for field in &body.fields {
+        sqlx::query("CALL upsert_field($1, $2, $3, $4, $5, $6)")
+            .bind(&field.name)
+            .bind(body.source)
+            .bind(&field.table)
+            .bind(&field.types)
+            .bind(field.subfield)
+            .bind(body.nonce)
+            .execute(&state.db)
+            .await
+            .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    }
+
+    Ok(Json(json!({})))
+}
+
 pub fn machine_routes() -> Router<AppState> {
     Router::new()
         .route("/source", put(put_source))
         .route("/tables", put(put_tables))
+        .route("/fields", put(put_fields))
 }
