@@ -1,4 +1,4 @@
-use crate::errors::{AppError, AppResult};
+use crate::errors::{AppError, AppResult, JsonResult};
 use crate::models::{AppState, Status};
 use axum::extract::State;
 use axum::http::StatusCode;
@@ -7,11 +7,11 @@ use axum::{Json, Router};
 use sqlx::Row;
 use tower_http::cors::CorsLayer;
 
-pub async fn status(State(state): State<AppState>) -> AppResult<Json<Status>> {
+pub async fn status(State(state): State<AppState>) -> JsonResult<Status> {
     let row = sqlx::query("SELECT 'hi' as text")
         .fetch_one(&state.db)
         .await
-        .map_err(|_| AppError::status(StatusCode::NOT_FOUND))?;
+        .map_err(|_| AppError::not_found())?;
 
     let text: &str = row.try_get("text").unwrap();
 

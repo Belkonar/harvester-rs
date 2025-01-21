@@ -1,4 +1,4 @@
-use crate::errors::{AppError, AppResult};
+use crate::errors::{json_ok, AppError, AppResult, JsonResult};
 use crate::models::{AppState, DataSource};
 use axum::extract::State;
 use axum::http::StatusCode;
@@ -39,34 +39,31 @@ struct PutFieldRequestField {
 async fn put_source(
     State(state): State<AppState>,
     Json(body): Json<PutSourceRequest>,
-) -> AppResult<Json<DataSource>> {
+) -> JsonResult<DataSource> {
     sqlx::query("CALL upsert_source($1, $2)")
         .bind(body.id)
         .bind(&body.name)
         .execute(&state.db)
         .await
-        .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        .map_err(AppError::error_from)?;
 
-    Ok(Json(DataSource {
+    json_ok(DataSource {
         id: body.id,
         name: body.name,
-    }))
+    })
 }
 
 async fn put_tables(
     State(state): State<AppState>,
     Json(body): Json<PutTableRequest>,
-) -> AppResult<Json<Value>> {
+) -> JsonResult<Value> {
     let len = body.names.len();
 
     if len > 50 {
-        return Err(AppError::new(
-            StatusCode::BAD_REQUEST,
-            format!(
-                "This endpoint is limited to 50 items per request, you have sent {}",
-                len
-            ),
-        ));
+        return Err(AppError::bad_request(format!(
+            "This endpoint is limited to 50 items per request, you have sent {}",
+            len
+        )));
     }
 
     for table in &body.names {
@@ -76,26 +73,23 @@ async fn put_tables(
             .bind(body.nonce)
             .execute(&state.db)
             .await
-            .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+            .map_err(AppError::error_from)?;
     }
 
-    Ok(Json(json!({})))
+    json_ok(json!({}))
 }
 
 async fn put_fields(
     State(state): State<AppState>,
     Json(body): Json<PutFieldRequest>,
-) -> AppResult<Json<Value>> {
+) -> JsonResult<Value> {
     let len = body.fields.len();
 
     if len > 500 {
-        return Err(AppError::new(
-            StatusCode::BAD_REQUEST,
-            format!(
-                "This endpoint is limited to 50 items per request, you have sent {}",
-                len
-            ),
-        ));
+        return Err(AppError::bad_request(format!(
+            "This endpoint is limited to 50 items per request, you have sent {}",
+            len
+        )));
     }
 
     for field in &body.fields {
@@ -108,10 +102,10 @@ async fn put_fields(
             .bind(body.nonce)
             .execute(&state.db)
             .await
-            .map_err(|e| AppError::new(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+            .map_err(AppError::error_from)?;
     }
 
-    Ok(Json(json!({})))
+    json_ok(json!({}))
 }
 
 pub fn machine_routes() -> Router<AppState> {
