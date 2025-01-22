@@ -2,7 +2,7 @@ use crate::models::AppState;
 use crate::routes::collect_routes;
 use sqlx::postgres::PgPoolOptions;
 
-mod errors;
+pub mod errors;
 mod models;
 mod routes;
 
