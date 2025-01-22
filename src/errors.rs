@@ -1,5 +1,6 @@
 #![allow(unused)] // This is a common file
 
+use core::fmt;
 use std::fmt::Display;
 
 use axum::http::StatusCode;
@@ -49,7 +50,7 @@ impl AppError {
         }
     }
 
-    pub fn error_from(obj: impl StdError) -> AppError {
+    pub fn from(obj: impl fmt::Display) -> AppError {
         AppError {
             code: StatusCode::INTERNAL_SERVER_ERROR,
             message: obj.to_string(),

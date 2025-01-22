@@ -44,7 +44,7 @@ async fn put_source(
         .bind(&body.name)
         .execute(&state.db)
         .await
-        .map_err(AppError::error_from)?;
+        .map_err(AppError::from)?;
 
     json_ok(DataSource {
         id: body.id,
@@ -72,7 +72,7 @@ async fn put_tables(
             .bind(body.nonce)
             .execute(&state.db)
             .await
-            .map_err(AppError::error_from)?;
+            .map_err(AppError::from)?;
     }
 
     json_ok(json!({}))
@@ -101,7 +101,7 @@ async fn put_fields(
             .bind(body.nonce)
             .execute(&state.db)
             .await
-            .map_err(AppError::error_from)?;
+            .map_err(AppError::from)?;
     }
 
     json_ok(json!({}))
