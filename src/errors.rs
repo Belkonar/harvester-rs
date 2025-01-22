@@ -5,8 +5,11 @@ use std::fmt::Display;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
+use sqlx::Error;
+use std::error::Error as StdError;
 
 /// Global error type
+#[derive(Debug)]
 pub struct AppError {
     pub code: StatusCode,
     pub message: String,
@@ -18,7 +21,8 @@ impl Display for AppError {
     }
 }
 
-// This is to fix the warning
+impl StdError for AppError {}
+
 impl AppError {
     pub fn status(code: StatusCode) -> AppError {
         AppError {
@@ -45,7 +49,7 @@ impl AppError {
         }
     }
 
-    pub fn error_from(obj: impl Display) -> AppError {
+    pub fn error_from(obj: impl StdError) -> AppError {
         AppError {
             code: StatusCode::INTERNAL_SERVER_ERROR,
             message: obj.to_string(),

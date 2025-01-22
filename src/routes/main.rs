@@ -1,7 +1,6 @@
-use crate::errors::{AppError, AppResult, JsonResult};
+use crate::errors::{AppError, JsonResult};
 use crate::models::{AppState, Status};
 use axum::extract::State;
-use axum::http::StatusCode;
 use axum::routing::get;
 use axum::{Json, Router};
 use sqlx::Row;

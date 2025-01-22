@@ -1,10 +1,9 @@
-use crate::errors::{json_ok, AppError, AppResult, JsonResult};
+use crate::errors::{json_ok, AppError, JsonResult};
 use crate::models::{AppState, DataSource};
 use axum::extract::State;
-use axum::http::StatusCode;
 use axum::routing::put;
 use axum::{Json, Router};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::{json, Value};
 use sqlx::types::Uuid;
 
