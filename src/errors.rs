@@ -1,15 +1,13 @@
-#![allow(unused)] // This is a common file
+#![allow(dead_code)] // This is a common file
 
-use core::fmt;
 use std::fmt::Display;
 
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
-use sqlx::Error;
-use std::error::Error as StdError;
 
 /// Global error type
+/// Use in basically all scenarios where an error is needed.
 #[derive(Debug)]
 pub struct AppError {
     pub code: StatusCode,
@@ -18,20 +16,12 @@ pub struct AppError {
 
 impl Display for AppError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "Code: {}; {}", self.code, self.message)
+        writeln!(f, "Code: {}", self.code.as_u16())?;
+        writeln!(f, "{}", self.message)
     }
 }
 
-impl StdError for AppError {}
-
 impl AppError {
-    pub fn status(code: StatusCode) -> AppError {
-        AppError {
-            code,
-            message: String::new(),
-        }
-    }
-
     pub fn new(code: StatusCode, message: String) -> AppError {
         AppError { code, message }
     }
@@ -50,13 +40,6 @@ impl AppError {
         }
     }
 
-    pub fn from(obj: impl fmt::Display) -> AppError {
-        AppError {
-            code: StatusCode::INTERNAL_SERVER_ERROR,
-            message: obj.to_string(),
-        }
-    }
-
     pub fn bad_request(message: String) -> AppError {
         AppError {
             code: StatusCode::BAD_REQUEST,
@@ -64,9 +47,12 @@ impl AppError {
         }
     }
 
-    /// Shorthand for server_error
-    pub fn se(message: String) -> AppError {
-        AppError::server_error(message)
+    /// implementing this here instead of a trait fixes conflict issues
+    pub fn from<T: Display>(obj: T) -> AppError {
+        AppError {
+            code: StatusCode::INTERNAL_SERVER_ERROR,
+            message: obj.to_string(),
+        }
     }
 }
 
@@ -82,4 +68,37 @@ pub type JsonResult<T> = AppResult<Json<T>>;
 
 pub fn json_ok<T>(o: T) -> JsonResult<T> {
     Ok(Json(o))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let err = AppError {
+            code: StatusCode::OK,
+            message: "ok".to_string(),
+        };
+
+        assert_eq!(err.to_string(), "Code: 200\nok\n");
+    }
+
+    #[test]
+    fn test_from() {
+        let err = sqlx::Error::PoolClosed {};
+        let err2: AppError = AppError::from(err);
+
+        assert_eq!(
+            err2.message,
+            "attempted to acquire a connection on a closed pool"
+        );
+        assert_eq!(err2.code, StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    #[test]
+    fn test_json() {
+        let resp: JsonResult<String> = json_ok("hi".to_string());
+        assert_eq!(resp.unwrap().to_string(), "hi");
+    }
 }
