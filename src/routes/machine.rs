@@ -14,7 +14,7 @@ struct PutSourceRequest {
     name: String,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize)]
 struct PutTableRequest {
     source: Uuid,
     nonce: Uuid,
