@@ -1,3 +1,7 @@
+#![allow(unused)] // This is a common file
+
+use std::fmt::Display;
+
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
@@ -8,12 +12,18 @@ pub struct AppError {
     pub message: String,
 }
 
+impl Display for AppError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Code: {}; {}", self.code, self.message)
+    }
+}
+
 // This is to fix the warning
 impl AppError {
     pub fn status(code: StatusCode) -> AppError {
         AppError {
             code,
-            message: "".to_string(),
+            message: String::new(),
         }
     }
 
@@ -35,7 +45,7 @@ impl AppError {
         }
     }
 
-    pub fn error_from(obj: impl ToString) -> AppError {
+    pub fn error_from(obj: impl Display) -> AppError {
         AppError {
             code: StatusCode::INTERNAL_SERVER_ERROR,
             message: obj.to_string(),
