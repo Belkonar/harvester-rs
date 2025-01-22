@@ -84,6 +84,7 @@ mod tests {
         assert_eq!(err.to_string(), "Code: 200; ok; ");
     }
 
+    /// Test the from method. It should make an error from any object that implements `Display`
     #[test]
     fn test_from() {
         let err = sqlx::Error::PoolClosed {};
@@ -96,6 +97,7 @@ mod tests {
         assert_eq!(err2.code, StatusCode::INTERNAL_SERVER_ERROR);
     }
 
+    /// Test that the types are all correct for `json_ok`.
     #[test]
     fn test_json() {
         let resp: JsonResult<String> = json_ok("hi".to_string());
