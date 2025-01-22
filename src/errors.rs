@@ -16,8 +16,8 @@ pub struct AppError {
 
 impl Display for AppError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "Code: {}", self.code.as_u16())?;
-        writeln!(f, "{}", self.message)
+        write!(f, "Code: {}; ", self.code.as_u16())?;
+        write!(f, "{}; ", self.message)
     }
 }
 
@@ -66,8 +66,8 @@ impl IntoResponse for AppError {
 pub type AppResult<T> = Result<T, AppError>;
 pub type JsonResult<T> = AppResult<Json<T>>;
 
-pub fn json_ok<T>(o: T) -> JsonResult<T> {
-    Ok(Json(o))
+pub fn json_ok<T>(obj: T) -> JsonResult<T> {
+    Ok(Json(obj))
 }
 
 #[cfg(test)]
@@ -81,7 +81,7 @@ mod tests {
             message: "ok".to_string(),
         };
 
-        assert_eq!(err.to_string(), "Code: 200\nok\n");
+        assert_eq!(err.to_string(), "Code: 200; ok; ");
     }
 
     #[test]
