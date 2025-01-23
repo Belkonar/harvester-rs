@@ -54,6 +54,14 @@ impl AppError {
             message: obj.to_string(),
         }
     }
+
+    /// TODO: Think about not having this. I'm unsure of its value
+    pub fn from_code<T: Display>(code: StatusCode) -> impl Fn(T) -> AppError {
+        move |e| AppError {
+            code,
+            message: e.to_string(),
+        }
+    }
 }
 
 impl IntoResponse for AppError {
