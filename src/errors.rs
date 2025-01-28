@@ -16,8 +16,7 @@ pub struct AppError {
 
 impl Display for AppError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Code: {}; ", self.code.as_u16())?;
-        write!(f, "{}; ", self.message)
+        write!(f, "Code: {}; {};", self.code.as_u16(), self.message)
     }
 }
 
@@ -89,19 +88,16 @@ mod tests {
             message: "ok".to_string(),
         };
 
-        assert_eq!(err.to_string(), "Code: 200; ok; ");
+        assert_eq!(err.to_string(), "Code: 200; ok;");
     }
 
     /// Test the from method. It should make an error from any object that implements `Display`
     #[test]
     fn test_from() {
         let err = sqlx::Error::PoolClosed {};
-        let err2: AppError = AppError::from(err);
+        let err2: AppError = AppError::from(&err);
 
-        assert_eq!(
-            err2.message,
-            "attempted to acquire a connection on a closed pool"
-        );
+        assert_eq!(err2.message, err.to_string());
         assert_eq!(err2.code, StatusCode::INTERNAL_SERVER_ERROR);
     }
 
